@@ -12,7 +12,10 @@ object GroceryItemset {
   
 def main(args: Array[String]): Unit = {
   
-    val transactions: List[Itemset] = Util.parseTransactions("input_location/Grocery_DataSet.csv")
+    val inputDF = spark.read.option("header","true").option("inferSchema","true").csv("file:///input_location/Groceries_dataset.csv")
+    val sortDF = inputDF.orderBy(col("Member_number"),col("Date"),col("itemDescription"))
+    val collectionDF = sortDF.groupBy(col("Member_number"),col("Date")).agg(collect_set(col("itemDescription")).alias("item"))
+    val transactions: List[Itemset] = collectionDF.agg(collect_list(df2.col("item")))
     val frequentItemsets = new NaiveApriori().execute(transactions, 3)
     printItemsets(frequentItemsets)
   }
