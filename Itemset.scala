@@ -12,19 +12,21 @@ object GroceryItemset {
   
 def main(args: Array[String]): Unit = {
   
+      val spark = SparkSession
+      .builder()
+      .appName("Grocery_Itemset")
+      .master("local")
+      .getOrCreate()
+  
     val inputDF = spark.read.option("header","true").option("inferSchema","true").csv("file:///input_location/Groceries_dataset.csv")
     val sortDF = inputDF.orderBy(col("Member_number"),col("Date"),col("itemDescription"))
     val collectionDF = sortDF.groupBy(col("Member_number"),col("Date")).agg(collect_set(col("itemDescription")).alias("item"))
     val transactions: List[Itemset] = collectionDF.agg(collect_list(df2.col("item")))
     val frequentItemsets = new NaiveApriori().execute(transactions, 3)
     printItemsets(frequentItemsets)
+  
   }
-
-    val spark = SparkSession
-      .builder()
-      .appName("Grocery_Itemset")
-      .master("local")
-      .getOrCreate()
+  
 }
 
 class NaiveApriori extends FIM {
